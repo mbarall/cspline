@@ -16,6 +16,7 @@ import java.io.BufferedWriter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.File;
+import java.io.FilenameFilter;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -1320,6 +1321,79 @@ public class FittedSpline {
 				"WTRA-SFFS-SMMT-Santa_Monica_fault-steep-CFM5",
 				"WTRA-SSFZ-MULT-Santa_Susana_fault-CFM1"
 			};
+
+			// Loop over test directories ...
+
+			for (String test_dir : cfm_test_dirs) {
+
+				// Make source and destination directories
+
+				String sdir = (new File (src_dir, test_dir)).getPath();
+				String ddir = (new File (dest_dir, test_dir)).getPath();
+
+				// Create the destination directory if necessary
+
+				try {
+					Files.createDirectories (Paths.get (ddir));
+				}
+				catch (IOException e) {
+					throw new RuntimeException ("Error creating directory: " + ddir, e);
+				}
+
+				// Perform the conversion
+
+				String iges_filename = (new File (ddir, "bspline_surf_fit.iges")).getPath();
+				String product_id = "bspline_surf_fit";
+				String file_name = "bspline_surf_fit.iges";
+				String label_prefix = "part";
+				String dir = sdir;
+				String filename_pattern = "part_%d_bspline_surf_fit.json";
+				int first_index = 0;
+
+				FittedSpline.spline_part_to_iges (
+					iges_filename,
+					product_id,
+					file_name,
+					label_prefix,
+					dir,
+					filename_pattern,
+					first_index);
+			}
+
+			return;
+		}
+
+
+
+
+		// Command : cfm_pilot_to_iges_2
+		// Command format:
+		//  cfm_pilot_to_iges_2  src_dir  dest_dir
+		// Convert CFM pilot files to IGES files, in a parallel directory structure.
+		// This is the same as cfm_pilot_to_iges, except that the directory names
+		// are read from disk instead of being given in a pre-programmed list.
+
+		if (args[0].equalsIgnoreCase ("cfm_pilot_to_iges_2")) {
+
+			// 2 additional arguments
+
+			if (args.length != 3) {
+				System.err.println ("FittedSpline : Invalid 'cfm_pilot_to_iges_2' command");
+				return;
+			}
+
+			String src_dir = args[1];
+			String dest_dir = args[2];
+
+			// List of CFM test directories, it is the first-level subdirectoris of the source directory
+
+			File src_dir_file = new File (src_dir);
+			String[] cfm_test_dirs = src_dir_file.list (new FilenameFilter() {
+				@Override
+				public boolean accept (File dir, String name) {
+					return (new File (dir, name)).isDirectory();
+				}
+			});
 
 			// Loop over test directories ...
 
